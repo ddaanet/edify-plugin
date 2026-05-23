@@ -9,79 +9,15 @@
             "command": "$CLAUDE_PLUGIN_ROOT/hooks/pretooluse-block-tmp.sh"
           }
         ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$CLAUDE_PLUGIN_ROOT/hooks/submodule-safety.py"
-          },
-          {
-            "type": "command",
-            "command": "$CLAUDE_PLUGIN_ROOT/hooks/pretooluse-recipe-redirect.py"
-          }
-        ]
-      },
-      {
-        "matcher": "Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$CLAUDE_PLUGIN_ROOT/hooks/pretooluse-recall-check.py"
-          }
-        ]
       }
     ],
     "PostToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$CLAUDE_PLUGIN_ROOT/hooks/submodule-safety.py"
-          }
-        ]
-      },
       {
         "matcher": "Write|Edit",
         "hooks": [
           {
             "type": "command",
             "command": "$CLAUDE_PLUGIN_ROOT/hooks/posttooluse-autoformat.sh"
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$CLAUDE_PLUGIN_ROOT/hooks/userpromptsubmit-shortcuts.py",
-            "timeout": 5
-          }
-        ]
-      }
-    ],
-    "SessionStart": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$CLAUDE_PLUGIN_ROOT/hooks/sessionstart-health.sh"
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$CLAUDE_PLUGIN_ROOT/hooks/stop-health-fallback.sh"
           }
         ]
       }
