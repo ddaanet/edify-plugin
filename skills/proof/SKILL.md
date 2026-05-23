@@ -1,11 +1,10 @@
 ---
 name: proof
 description: >-
-  This skill should be used when a planning artifact needs structured user
-  validation. Invoked by hosting skills (/design, /runbook, /requirements) at
-  review integration points. Triggers on "proof", "validate artifact",
-  "review loop", or when a hosting skill reaches a review stage. Replaces
-  ad-hoc single-turn validation with item-by-item review protocol.
+  This skill should be used when an artifact needs structured user
+  validation. Triggers on "proof", "validate artifact", "review loop", or
+  when an artifact needs a careful item-by-item read before it ships.
+  Replaces ad-hoc single-turn validation with item-by-item review protocol.
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Task, AskUserQuestion
 user-invocable: true
 ---
@@ -22,7 +21,7 @@ Item-by-item review loop for planning artifacts. Presents discrete items with pe
 /proof <artifact-path>
 ```
 
-Runs inline (no `context: fork`) — shares the hosting skill's context window, sees all loaded artifacts and discussion history. The hosting skill invokes `/proof` via the Skill tool at its review stage.
+Runs inline (no `context: fork`) — shares the current context window, seeing all loaded artifacts and discussion history. May be invoked directly or by another skill that reaches a review stage.
 
 ## Item Review Loop
 
@@ -72,13 +71,7 @@ Emit a state line at every transition point. The act of generating the state lin
 
 ### Entry
 
-**Planstate (D+B anchor):** Write review-pending state to lifecycle:
-
-```bash
-echo "$(date +%Y-%m-%d) review-pending — /proof <artifact>" >> plans/<job>/lifecycle.md
-```
-
-**Read the artifact under review.** If the artifact path contains a glob pattern (e.g., `runbook-phase-*.md`), expand via Glob and read all matching files — present as a single composite review target.
+**Read the artifact under review.** If the artifact path contains a glob pattern (e.g., `section-*.md`), expand via Glob and read all matching files — present as a single composite review target.
 
 **Detect items.** Parse artifact structure to identify reviewable items. See `references/item-review.md` for granularity detection table and splitting indicators. When artifact has no detectable sub-items, it is one item — the loop runs once.
 
@@ -126,12 +119,12 @@ When user provides non-verdict input on an item, enter discussion scoped to that
 
 ### Iteration Guards
 
-**No direct edits during iteration.** Refuse execution-oriented requests (file edits, skill chains to /runbook, /deliverable-review, /codify, external plugins). This gate prevents bare-directive bypass of the review workflow.
+**No direct edits during iteration.** Refuse execution-oriented requests (file edits, skill chains to other skills or external plugins). This gate prevents bare-directive bypass of the review loop.
 
 **Normal loop actions** available throughout iteration, resume review after:
 - **learn** — capture insight to `agents/learnings.md`
 - **pending** — capture task for handoff (`p:` semantics)
-- **brief** — transfer context to worktree
+- **brief** — transfer context to a follow-up task
 
 **Emit state line** after showing decisions:
 
@@ -145,16 +138,11 @@ When user provides non-verdict input on an item, enter discussion scoped to that
 1. Display full verdict summary: N approved, N revised, N killed, N skipped (unchanged), cross-item outputs (learnings, pending tasks, artifacts)
 2. User confirms
 3. Apply all verdicts as batch edits to artifact (revise edits, kill deletions, absorb transfers)
-4. Dispatch lifecycle-appropriate corrector (see Corrector Dispatch below)
-5. Present corrector findings
-6. Update planstate: `echo "$(date +%Y-%m-%d) reviewed — /proof <artifact>" >> plans/<job>/lifecycle.md`
-7. Return control to hosting skill
+4. Return control to the caller
 
 **Skip semantics:** Explicit deferral — affirmative decision to accept as-is without evaluation, not silent omission. Non-blocking — does not prevent apply. Listed prominently in summary with distinct count. No tracking obligation — skipped items do not carry forward as open items or generate pending tasks.
 
-**"discard":** Abandon all verdicts. Artifact unchanged. Update planstate: `echo "$(date +%Y-%m-%d) review-abandoned — /proof <artifact>" >> plans/<job>/lifecycle.md`
-
-**Skip corrector when:** Accumulated verdict list has no revise/kill verdicts (all approved/skipped — no artifact changes to review).
+**"discard":** Abandon all verdicts. Artifact unchanged.
 
 ### Loop Actions
 
@@ -162,60 +150,9 @@ Available during and after item iteration (non-terminal — resume review after)
 
 **"revisit":** Change verdict for a previously-reviewed item. Identification is flexible — by number, title, or content. Re-enter verdict prompt. Returns to post-iteration state (not back into the linear sequence).
 
-## Corrector Dispatch
-
-When terminal action is "apply" and verdicts include revise or kill, dispatch the lifecycle-appropriate corrector as a sub-agent (Task tool, clean context). Corrector dispatch is lifecycle-driven: artifact type + "edits applied" → corrector fires.
-
-| Artifact Pattern | Corrector | subagent_type |
-|-----------------|-----------|---------------|
-| outline.md | outline-corrector | outline-corrector |
-| design.md | design-corrector | design-corrector |
-| runbook-outline.md | runbook-outline-corrector | runbook-outline-corrector |
-| runbook-phase-*.md | runbook-corrector | runbook-corrector |
-| requirements.md | -- (user-validated directly) | -- |
-| inline-plan.md | -- (no corrector) | -- |
-
-**Corrector prompt includes:**
-- Artifact path under review
-- Accumulated verdict list (context on what changed)
-- Review-relevant entries from `plans/<job>/recall-artifact.md` if present
-- Report path: `plans/<job>/reports/<artifact-stem>-proof-review.md`
-
-**Handle corrector result:**
-- Read review report from returned filepath
-- If UNFIXABLE issues: present findings to user, enter scoped discussion on corrector findings (not full re-iteration of original items)
-- If all fixed: return control to hosting skill
-
-## Author-Corrector Coupling
-
-When /proof's hosting skill is /design and the design modifies an "author" skill (a skill whose output is reviewed by a corrector), check coupled dependencies via T1-T6.5 in `agents/decisions/pipeline-contracts.md` (dependency mapping table and visible output requirement).
-
-## Layered Defect Model
-
-- **/requirements** = prevention layer. Captures domain context before design, preventing defect classes entirely.
-- **Post-expansion /proof** = detection layer. Catches systemic defects correctors cannot — novel defect classes not yet in corrector rules.
-
-Evidence: wrong-RED/bootstrap defect passed all correctors, detectable only by human review at expansion point. The two layers are complementary, not redundant.
-
-## Integration Points
-
-Invoked at 8 points across 3 hosting skills:
-
-| Hosting Skill | Stage | Artifact | Defect Layer |
-|---------------|-------|----------|-------------|
-| /requirements | Step 5 | requirements.md | Prevention |
-| /design | Moderate agentic-prose (Post-code-reading) | inline-plan.md | Moderate scope validation |
-| /design | Moderate non-prose (Post-code-reading) | outline.md | Moderate scope validation |
-| /design | Phase B (Post-outline) | outline.md | Approach validation |
-| /design | Phase C.4.5 (Post-design review) | design.md | Design validation |
-| /runbook | Tier 2 (Post-outline-corrector) | runbook-outline.md | Tier 2 scope validation |
-| /runbook | Phase 0.87 (Post-simplification, unconditional) | runbook-outline.md | Pre-expansion validation |
-| /runbook | Post-Phase 3 (Post-holistic review) | runbook-phase-*.md | Systemic detection |
-
 ## Anti-Patterns
 
 - **Single-turn validation:** "Does this look right?" → "yes" → proceed. No reword, no accumulation. Misses misunderstandings.
 - **Immediate edits during iteration:** Applying file edits inline during review instead of accumulating verdicts. Loses track of decisions, prevents batch-apply atomicity.
-- **Skipping corrector after apply:** Verdicts applied but no corrector review. Planning artifacts need lifecycle-appropriate review after modification.
 - **Silent skipping:** Advancing past an item without an explicit verdict. Every item gets a disposition — skip is the explicit "defer" action, not silence.
 - **Random-access navigation:** Jumping to arbitrary items during iteration. Linear presentation prevents skip-ahead bias. Revisit is post-completion only.

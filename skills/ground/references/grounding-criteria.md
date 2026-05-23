@@ -45,7 +45,7 @@ External grounding is required when output makes:
 | Parameter | Options | Selection criteria |
 |-----------|---------|-------------------|
 | Internal scope | codebase / conceptual | Descriptive ("what patterns exist for X") → codebase. Generative ("what dimensions/constraints apply to X") → conceptual |
-| Model tier | sonnet / opus | Codebase → sonnet (scout pattern extraction). Conceptual → opus (generative divergence) |
+| Model tier | sonnet / opus | Codebase → sonnet (pattern extraction). Conceptual → opus (generative divergence) |
 | Research breadth | narrow (1-2) / broad (3-5) | High-stakes, novel domain, or unfamiliar territory → broad. Familiar domain with known prior art → narrow |
 | Output format | reference doc / skill body / decision entry | Reusable methodology → reference doc. Encoding into procedure → skill body. One-time decision → decision entry |
 
@@ -93,8 +93,7 @@ Git history surfaces what current files cannot: failure patterns, correction cyc
 - `git log --oneline --grep="reflect\|RCA\|deviat\|correct" --all` — targeted failure-pattern commits
 - `agents/learnings.md` — accumulated antipatterns with evidence and root causes
 - `plans/reports/workflow-grounding-audit.md` — grounding provenance for workflow skills (if present)
-- `/reflect` RCA artifacts in `plans/reports/` — structured failure analyses
-- Session scraper (`plans/prototypes/session-scraper.py`) — parse session transcripts into structured timelines. 4-stage pipeline: `scan` (list projects/sessions), `parse <session-id> --project DIR` (single session → timeline entries), `tree <session-id> --project DIR` (aggregate with sub-agents), `correlate <session-id> --project DIR` (join with git history). Use `scan --prefix <project-path>` to find sessions, then `tree` with `--format json` to get structured entries. Filter the JSON output for topic-relevant entries (grep entry types, content, tool names). Session logs contain user feedback, discussion turns, and design iteration reasoning that produced committed corrections — material git history alone cannot recover. Git history shows *what* changed; session logs show *why the user asked for the change*.
+- Session scraper (`edify list | extract <prefix> | collect`) — mine session transcripts for committed user feedback. `edify list` enumerates top-level sessions; `edify extract <session-prefix>` pulls feedback from one session; `edify collect` batch-collects feedback across all sessions. Session logs contain user feedback, discussion turns, and design iteration reasoning that produced committed corrections — material git history alone cannot recover. Git history shows *what* changed; session logs show *why the user asked for the change*.
 
 **Scope selector:** If topic is a process skill → use codebase scope **with git history mining + session log scraping**. Standard codebase scope (file inspection only) misses the failure evidence that makes process grounding credible.
 

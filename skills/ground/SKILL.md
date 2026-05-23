@@ -26,7 +26,7 @@ Frame the research question before searching.
 - Set exclusion criteria: wrong domain, no procedure, outdated
 - Select parameters (consult `references/grounding-criteria.md` for guidance):
   - Internal scope: **codebase** (descriptive — "what patterns exist for X") or **conceptual** (generative — "what dimensions/constraints apply to X")
-  - Model tier for internal branch: codebase → sonnet (scout); conceptual → opus (generative divergence)
+  - Model tier for internal branch: codebase → sonnet; conceptual → opus (generative divergence)
   - Research breadth: narrow (1-2 searches) or broad (3-5 searches)
   - Output format: reference document, skill body, or decision entry
 
@@ -36,11 +36,11 @@ Execute two branches as parallel Task agents. Launch both in a single message. N
 
 **Branch A — Internal explore:**
 Scope determines agent type and model:
-- **Codebase scope:** Delegate to scout agent. Surface existing codebase patterns, prior decisions, current conventions. Output: inventory of existing patterns with file references. Write to `plans/reports/<topic>-internal-codebase.md`.
+- **Codebase scope:** Delegate to a Task agent (subagent_type: general-purpose, model: sonnet). Surface existing codebase patterns, prior decisions, current conventions. Output: inventory of existing patterns with file references. Write to `plans/reports/<topic>-internal-codebase.md`.
 - **Conceptual scope:** Delegate to Task agent (subagent_type: general-purpose, model: opus). Generate project-specific dimensions, constraints, desiderata, evaluation axes. Focus on what no external source would surface. Write to `plans/reports/<topic>-internal-conceptual.md`.
 
 **Branch B — External research:**
-Delegate to Task agent (subagent_type: general-purpose, model: sonnet). Model is always sonnet regardless of invoking workflow tier. Agent prompt includes:
+Delegate to Task agent (subagent_type: general-purpose, model: sonnet). Model is always sonnet. Agent prompt includes:
 - Research topic and framing question from Phase 1
 - Search query templates from `references/grounding-criteria.md`
 - Evaluation criteria: relevant to project context? Actionable methodology? Named framework with structure?
@@ -74,7 +74,7 @@ Required sections:
 - Grounding quality label with evidence basis
 - Sources section with retrieval context
 
-**Branch artifacts:** Both branch reports in `plans/reports/` are retained as audit evidence supporting the synthesis through the design lifecycle. The grounding report references both.
+**Branch artifacts:** Both branch reports in `plans/reports/` are retained as audit evidence supporting the synthesis. The grounding report references both.
 
 ## References
 

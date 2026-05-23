@@ -11,7 +11,7 @@ Parse artifact structure to identify reviewable items. Detection is automatic ba
 | requirements.md | `**FR-N:**` / `**NFR-N:**` / `**C-N:**` | Individual requirement/constraint |
 | outline.md | `### D-N:` decision headings or `## Section` headings | Decision or section |
 | design.md | `## Section` headings | Design section |
-| runbook-phase-*.md | Cycle/step markers (`## Cycle`, `## Step`) | Individual cycle or step |
+| Phased plan | Cycle/step markers (`## Cycle`, `## Step`) | Individual cycle or step |
 | Source files | Function/class definitions | Function or class |
 | Diff output | Hunk markers (`@@`) | Individual hunk |
 
@@ -55,7 +55,7 @@ On terminal action "apply" after user confirms the verdict summary:
 - **kill (absorb)** — remove from source artifact, append to named target artifact
 - **skip** — no edit needed (item unchanged, explicitly deferred)
 
-For multi-file composites (runbook phases), apply edits per-file independently.
+For multi-file composites (glob-matched artifacts), apply edits per-file independently.
 
 ## Cross-Item Outputs
 
@@ -63,7 +63,7 @@ During iteration, normal loop actions produce immediate side effects (distinct f
 
 - **learn** — appended to `agents/learnings.md` immediately
 - **pending** — captured for handoff via `p:` semantics immediately
-- **brief** — context transferred to worktree immediately
+- **brief** — context transferred to a follow-up task immediately
 
 These are listed in the verdict summary under "Cross-item outputs" so the user sees the full picture before confirming apply.
 
