@@ -13,9 +13,6 @@ allowed-tools:
   - Bash
   - Write
 user-invocable: true
-continuation:
-  cooperative: true
-  default-exit: ["/handoff", "/commit"]
 ---
 
 # Review Production Artifacts
@@ -93,15 +90,13 @@ Always runs in main session with full cross-project context.
 - API contract alignment between modules
 - Naming convention uniformity
 - Fragment convention compliance
-- Memory index pattern verification
 - Other skills' allowed-tools and frontmatter cross-reference validation
-- **Recall context:** `Bash: edify _recall resolve plans/<plan>/recall-artifact.md` — if _recall resolve succeeds, its output contains resolved decision content (common review failures, quality anti-patterns). Supplements existing axes, does not replace them. If artifact absent or _recall resolve fails: do lightweight recall — Read `memory-index.md` (skip if already in context), identify review-relevant entries (quality patterns, failure modes, artifact-type conventions), batch-resolve via `edify _recall resolve "when <trigger>" ...`. Proceed with whatever recall yields
 
 **Per-file review (when Layer 1 skipped):**
 - Read each deliverable and evaluate against type-specific axes
 - Record findings with: file:line, axis violated, severity, description
 
-**Why interactive is mandatory:** Delegated agents lack cross-project context — fragment conventions, memory index patterns, other skills' configurations, inter-file consistency. Layer 2 reads deliverables directly against the design spec, not delegation reports. The two layers are independent.
+**Why interactive is mandatory:** Delegated agents lack cross-project context — fragment conventions, other skills' configurations, inter-file consistency. Layer 2 reads deliverables directly against the design spec, not delegation reports. The two layers are independent.
 
 ### Phase 4: Report
 
@@ -141,36 +136,8 @@ Write consolidated report to `plans/<plan>/reports/deliverable-review.md`.
 - **Minor** — style, clarity, naming, robustness edge case
 
 **Next steps:**
-1. **Lifecycle entry:** Append to `plans/<plan-name>/lifecycle.md`:
-   - **Re-review:** If the plan's current lifecycle last entry is `rework`, first append `{YYYY-MM-DD} review-pending — /deliverable-review`
-   - **Outcome:** `reviewed` if no Critical findings; `rework` if any Critical findings
-     ```
-     {YYYY-MM-DD} reviewed — /deliverable-review
-     ```
-     or
-     ```
-     {YYYY-MM-DD} rework — /deliverable-review
-     ```
-   - **In-main delivery:** If outcome is `reviewed` AND in the main repository (not a worktree — `git rev-parse --git-dir` returns `.git`), also append:
-     ```
-     {YYYY-MM-DD} delivered — /deliverable-review
-     ```
-2. For any findings (Critical, Major, or Minor): write one pending task to `agents/session.md`
-   - Task format: `- [ ] **Fix <plan-name> findings** — \`/design plans/<plan>/reports/deliverable-review.md\` | opus`
-   - **Section targeting:** On main → Worktree Tasks. In a worktree → In-tree Tasks. Detect via `git rev-parse --git-dir` (`.git` = main, otherwise worktree).
-   - Unconditional `/design` routing — `/design` triage handles proportionality
-   - The fix task scope is ALL findings in the report. Every finding resolves to a fix or a pending task — severity does not grant skip permission.
-3. Report severity counts only. No merge-readiness language — user reads severity counts, user decides.
 
-## Continuation
-
-After Phase 4 completes (report written, lifecycle updated, fix task created if needed):
-
-1. Read continuation from `additionalContext` or `[CONTINUATION: ...]` suffix
-2. If continuation present: peel first entry, tail-call with remainder
-3. If no continuation: default-exit — `/handoff` → `/commit`
-
-**CRITICAL:** Do NOT include continuation metadata in Task tool prompts.
+Report severity counts only. No merge-readiness language — the user reads severity counts and decides what to act on. The report is the deliverable; the skill does not queue follow-up work or record lifecycle state.
 
 ## References
 
